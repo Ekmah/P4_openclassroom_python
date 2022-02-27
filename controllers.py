@@ -1,5 +1,5 @@
 import datetime
-from models import Tournoi, Player, Round, Match, StatutPlayer
+from models import Tournament, Player, Round, Match, StatutPlayer
 from views import UserCreation, TournoiCreation, RoundCreation, input_error
 # from tinydb import TinyDB, Query
 # db = TinyDB('db.json')
@@ -21,7 +21,7 @@ class TournamentInit:
     def __init__(self):
         self.tournament_view = TournoiCreation()
         nb_rounds, rounds_id = self.c_rounds_id()
-        Tournoi(name=self.c_name(), location=self.c_location(), date=self.c_date(), time_control=self.c_time_control(),
+        Tournament(name=self.c_name(), location=self.c_location(), date=self.c_date(), time_control=self.c_time_control(),
                 description=self.c_description(), players_id=self.c_players_id(), rounds_id=rounds_id,
                 nb_rounds=nb_rounds)
     

@@ -1,6 +1,6 @@
 
 
-class Tournoi:
+class Tournament:
     def __init__(self, name: str, location: str, date, time_control: str,
                  description: str, players_id, rounds_id=None, nb_rounds: int = 1):
         self.name = name
@@ -13,22 +13,29 @@ class Tournoi:
         self.nb_rounds = nb_rounds
 
 
+class PlayerScore:
+    def __init__(self, tournament_id, player_id: int, score: float = 0):
+        self.tournament_id = tournament_id
+        self.player_id = player_id
+        self.score = score
+
+
 class Player:
     def __init__(self, last_name: str, first_name: str, birth_date,
-                 gender: str, elo: int = 0, score: float = 0):
+                 gender: str, score_id: int, elo: int = 0):
         self.last_name = last_name
         self.first_name = first_name
         self.birth_date = birth_date
         self.gender = gender
         self.elo = elo
-        self.score = score  # inter?
+        self.score_id = score_id  # inter?
 
 
 class StatutPlayer:
-    def __init__(self, match_id: int, player_id: int, player_score: float = None,
+    def __init__(self, match_id: int, player_id: int, player_match_score: float = None,
                  color: str = None):
         self.color = color
-        self.player_score = player_score
+        self.player_match_score = player_match_score
         self.match_id = match_id
         self.player_id = player_id
         pass
