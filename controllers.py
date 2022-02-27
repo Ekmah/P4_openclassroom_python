@@ -9,21 +9,24 @@ class Menu:
     def __init__(self):
         self.r = 0
 
-    # rapports
     # créer tournoi
     # créer joueur
-    # edit classment joueur
-    # finir le round en cours si en cours
+    # edit elo joueur
+    #  -> sous menu tournoi
+    #   rapports
+    #   finir le round en cours si en cours
 
 
 class TournamentInit:
 
     def __init__(self):
         self.tournament_view = TournoiCreation()
-        nb_rounds, rounds_id = self.c_rounds_id()
-        Tournament(name=self.c_name(), location=self.c_location(), date=self.c_date(), time_control=self.c_time_control(),
-                description=self.c_description(), players_id=self.c_players_id(), rounds_id=rounds_id,
-                nb_rounds=nb_rounds)
+
+    def tournament_creation(self):
+        nb_rounds = self.c_nb_rounds()
+        Tournament(name=self.c_name(), location=self.c_location(), date=self.c_date(),
+                   time_control=self.c_time_control(), description=self.c_description(), players_id=self.c_players_id(),
+                   nb_rounds=nb_rounds)
     
     def c_name(self):
         while True:
@@ -115,6 +118,8 @@ class PlayerInit:
 
     def __init__(self):
         self.user_view = UserCreation()
+
+    def player_creation(self):
         last_name = self.c_last_name()
         first_name = self.c_first_name()
         birth_date = self.c_birth_date()
@@ -191,9 +196,6 @@ def has_number(char):
     return any(char.isdigit() for char in char)
 
 
-PlayerInit()
-
-
 class RoundMatchsInit:
 
     def __init__(self, tournament_id):
@@ -204,15 +206,10 @@ class RoundMatchsInit:
         round_nb = len(self.tournament.rounds_id)
         if round_nb + 1 < self.tournament.nb_rounds:
             round_nb_actual = round_nb + 1
-            while True:
-                try:
-                    round_name = self.round_view.get_round_name()
-                except ValueError:
-                    input_error()
-                    continue
 
             matches_id = 0  # Appel algo création matches + status
-            Round(round_name=round_name, round_nb=round_nb_actual, datetime_start=datetime.datetime.now(),
+
+            Round(round_name=f"Round {round_nb_actual}", round_nb=round_nb_actual, datetime_start=datetime.datetime.now(),
                   matches_id=matches_id)
 
         else:
@@ -224,4 +221,4 @@ class RoundMatchsInit:
     # Match()  # init
     # StatutPlayer()  # init
 
-
+# Controlleur fin de tour (input score de match)

@@ -22,13 +22,13 @@ class PlayerScore:
 
 class Player:
     def __init__(self, last_name: str, first_name: str, birth_date,
-                 gender: str, score_id: int, elo: int = 0):
+                 gender: str, player_score_id: int, elo: int = 0):
         self.last_name = last_name
         self.first_name = first_name
         self.birth_date = birth_date
         self.gender = gender
         self.elo = elo
-        self.score_id = score_id  # inter?
+        self.score_id = player_score_id  # inter?
 
 
 class StatutPlayer:
