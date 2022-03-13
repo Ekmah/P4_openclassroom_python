@@ -1,3 +1,4 @@
+from tinydb import TinyDB
 
 
 class Tournament:
@@ -12,23 +13,38 @@ class Tournament:
         self.rounds_id = rounds_id
         self.nb_rounds = nb_rounds
 
+    def save(self):
+        db = TinyDB('db.json')
+        table = db.table('Tournament')
+        return table.insert(self.__dict__)
+
 
 class PlayerScore:
-    def __init__(self, tournament_id, player_id: int, score: float = 0):
+    def __init__(self, tournament_id, player_id: int, score: float = 0, player_already_matched_id=None):
         self.tournament_id = tournament_id
         self.player_id = player_id
         self.score = score
+        self.player_already_matched_id = player_already_matched_id
+
+    def save(self):
+        db = TinyDB('db.json')
+        table = db.table('PlayerScore')
+        return table.insert(self.__dict__)
 
 
 class Player:
     def __init__(self, last_name: str, first_name: str, birth_date,
-                 gender: str, player_score_id: int, elo: int = 0):
+                 gender: str, elo: int = 0):
         self.last_name = last_name
         self.first_name = first_name
         self.birth_date = birth_date
         self.gender = gender
         self.elo = elo
-        self.score_id = player_score_id  # inter?
+
+    def save(self):
+        db = TinyDB('db.json')
+        table = db.table('Player')
+        return table.insert(self.__dict__)
 
 
 class StatutPlayer:
@@ -40,18 +56,33 @@ class StatutPlayer:
         self.player_id = player_id
         pass
 
+    def save(self):
+        db = TinyDB('db.json')
+        table = db.table('StatutPlayer')
+        return table.insert(self.__dict__)
+
 
 class Match:
-    def __init__(self, game_status: bool, players_statut_id):
-        self.players_statut_id = players_statut_id
+    def __init__(self, game_status: bool):
         self.game_status = game_status
+
+    def save(self):
+        db = TinyDB('db.json')
+        table = db.table('Match')
+        return table.insert(self.__dict__)
 
 
 class Round:
-    def __init__(self, round_name: str, datetime_start, datetime_end=None,
+    def __init__(self, tournament_id: int, round_name: str, datetime_start, datetime_end=None,
                  matches_id=None, round_nb: int = 1):
+        self.tournament_id = tournament_id
         self.round_name = round_name
         self.datetime_start = datetime_start
         self.datetime_end = datetime_end
         self.matches_id = matches_id
         self.round_nb = round_nb
+
+    def save(self):
+        db = TinyDB('db.json')
+        table = db.table('Round')
+        return table.insert(self.__dict__)

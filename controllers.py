@@ -1,20 +1,45 @@
 import datetime
-from models import Tournament, Player, Round, Match, StatutPlayer
-from views import UserCreation, TournoiCreation, RoundCreation, input_error
-# from tinydb import TinyDB, Query
-# db = TinyDB('db.json')
+from models import Tournament, Player, Round, Match, StatutPlayer, PlayerScore
+from views import UserCreation, TournoiCreation, RoundCreation, MenuView, input_error, id_error
+from algo_sort_round import algo
+from tinydb import TinyDB, where
+db = TinyDB('db.json')
+
+# PASSER LYNTER PYLINT PEP8
+# pip freeze > requirements.txt
+# create folder controller/view and files for each big view/controller
 
 
 class Menu:
     def __init__(self):
-        self.r = 0
+        self.menu_view = MenuView()
 
     # créer tournoi
-    # créer joueur
-    # edit elo joueur
-    #  -> sous menu tournoi
-    #   rapports
-    #   finir le round en cours si en cours
+    def main_menu(self):
+        choice = self.menu_view.main_menu()
+        if int(choice) == 0:
+            TournamentInit().tournament_creation()
+        elif int(choice) == 1:
+            PlayerInit().player_creation()
+        elif int(choice) == 2:
+            pass
+            # edit player elo
+        elif int(choice) == 3:
+            self.tournament_sub_menu()
+
+    def tournament_sub_menu(self):
+        all_tournaments = [[Tournament(**t), t.doc_id] for t in db.table('Tournament').all()]
+        tournament_id = self.menu_view.choose_tournament(all_tournaments)
+        tournament = Tournament(**db.table('Tournament').get(doc_id=int(tournament_id)))
+        if tournament:
+            choice = self.menu_view.sub_menu_tournament()
+            if int(choice) == 0:
+                return self.main_menu()
+            if int(choice) == 1:
+                RoundMatchsInit(tournament_id).c_round()  # finir le round en cours si en cours
+            elif int(choice) == 2:
+                pass
+                #   rapports
 
 
 class TournamentInit:
@@ -23,10 +48,22 @@ class TournamentInit:
         self.tournament_view = TournoiCreation()
 
     def tournament_creation(self):
+        name = self.c_name()
+        description = self.c_description()
+        location = self.c_location()
+        date = self.c_date()
         nb_rounds = self.c_nb_rounds()
-        Tournament(name=self.c_name(), location=self.c_location(), date=self.c_date(),
-                   time_control=self.c_time_control(), description=self.c_description(), players_id=self.c_players_id(),
-                   nb_rounds=nb_rounds)
+        players_id = self.c_players_id()
+        tournament = Tournament(name=name, location=location, date=date,
+                                time_control=self.c_time_control(), description=description,
+                                players_id=players_id, nb_rounds=nb_rounds)
+        tournoi_id = tournament.save()
+        for player_id in players_id:
+            player_score = PlayerScore(tournoi_id, player_id)
+            player_score.save()
+            # id_error(player_id, "PlayerS")
+        self.tournament_view.success()
+        return Menu().main_menu()
     
     def c_name(self):
         while True:
@@ -47,7 +84,7 @@ class TournamentInit:
             try:
                 location = self.tournament_view.get_location()
                 return str(location)
-
+                # must have characters?
             except ValueError:
                 input_error()
                 continue
@@ -57,7 +94,7 @@ class TournamentInit:
             try:
                 day, month, year = map(int, self.tournament_view.get_date().split('/'))
                 try:
-                    date = datetime.date(year, month, day)
+                    date = datetime.date(year, month, day).isoformat()
                     return date
                 except ValueError:
                     input_error()
@@ -90,18 +127,22 @@ class TournamentInit:
         while True:
             try:
                 players_nb = int(self.tournament_view.get_nb_players())
+                break
             except ValueError:
                 input_error()
                 continue
         players_id = []
-        for i in range(players_nb):
+        i = 1
+        while i <= players_nb:
             while True:
                 try:
-                    player_id = int(self.tournament_view.get_player_id())
+                    player_id = int(self.tournament_view.get_player_id(i))
                     players_id.append(player_id)
+                    break
                 except ValueError:
                     input_error()
                     continue
+            i += 1
         return players_id
         
     def c_nb_rounds(self):
@@ -127,13 +168,16 @@ class PlayerInit:
         elo = self.c_elo()
         player = Player(last_name=last_name, first_name=first_name, birth_date=birth_date,
                         gender=gender, elo=elo)  # init
+        player_id = player.save()
+        self.user_view.success(player_id)
+        return Menu().main_menu()
 
     def c_birth_date(self):
         while True:
             try:
                 day, month, year = map(int, self.user_view.get_birth_date().split('/'))
                 try:
-                    birth_date = datetime.date(year, month, day)
+                    birth_date = datetime.date(year, month, day).isoformat()
                     return birth_date
                 except ValueError:
                     input_error()
@@ -143,24 +187,23 @@ class PlayerInit:
                 continue
 
     def c_last_name(self):
-        while True:
-            try:
-                last_name = self.user_view.get_last_name().upper()
-                if has_number(last_name):
-                    input_error()
-                    continue
-                else:
-                    return last_name
-
-            except ValueError:
+        try:
+            last_name = self.user_view.get_last_name().upper()
+            if not last_name or has_number(last_name):
                 input_error()
-                continue
+                return self.c_last_name()
+            else:
+                return last_name
+
+        except ValueError:
+            input_error()
+            return self.c_last_name()
 
     def c_first_name(self):
         while True:
             try:
                 first_name = self.user_view.get_first_name().lower().capitalize()
-                if has_number(first_name):
+                if not first_name or has_number(first_name):
                     input_error()
                     continue
                 else:
@@ -200,25 +243,38 @@ class RoundMatchsInit:
 
     def __init__(self, tournament_id):
         self.round_view = RoundCreation()
-        self.tournament = tournament_id
+        self.tournament = Tournament(**db.table('Tournament').get(doc_id=int(tournament_id)))
+        if self.tournament:
+            self.tournament_id = tournament_id
 
-    def c_round(self, tournament_id):
-        round_nb = len(self.tournament.rounds_id)
-        if round_nb + 1 < self.tournament.nb_rounds:
+# FINISH MATCH HERE + PROPOSAL DISPLAY SCOREBOARD
+
+    def c_round(self):
+        try:
+            round_nb = len(self.tournament.rounds_id)
+        except TypeError:
+            self.tournament.rounds_id = []
+            round_nb = 0
+        if round_nb < self.tournament.nb_rounds:
             round_nb_actual = round_nb + 1
+            matches_id, matched = algo(self.tournament)
 
-            matches_id = 0  # Appel algo création matches + status
-
-            Round(round_name=f"Round {round_nb_actual}", round_nb=round_nb_actual, datetime_start=datetime.datetime.now(),
-                  matches_id=matches_id)
-
+            round_obj = Round(tournament_id=self.tournament_id, round_name=f"Round {round_nb_actual}",
+                              round_nb=round_nb_actual, datetime_start=datetime.datetime.now().isoformat(),
+                              matches_id=matches_id)
+            round_id = round_obj.save()
+            self.tournament.rounds_id.append(round_id)
+            db.table('Tournament').update(self.tournament.__dict__)
+            self.round_view.show_matches(matched)
+            return Menu().main_menu()
         else:
-            tournament_finished = True  # The tournament has ended
+            pass  # The tournament has ended
 
-    # algo autre fichier
-    # precedent top 2 player from any round must not encounter each other again
-    # Round()  # init
-    # Match()  # init
-    # StatutPlayer()  # init
+    # Round()  # init # Done
+    # Match()  # init # Done
+    # StatutPlayer()  # init # Done
+    # Controlleur fin de tour (input score de match)
 
-# Controlleur fin de tour (input score de match)
+
+if __name__ == '__main__':
+    Menu().main_menu()
