@@ -3,7 +3,7 @@ from tinydb import TinyDB, where
 db = TinyDB('db.json')
 
 
-def algo(tournament):
+def algo(tournament, new):
     all_players = []
     for player_id in tournament.players_id:
         player = Player(**db.table('Player').get(doc_id=player_id))
@@ -14,9 +14,12 @@ def algo(tournament):
                            "last_name": player.last_name, "first_name": player.first_name}
         all_players.append(compiled_player)
     newlist = sorted(all_players, key=lambda d: (d['score'], d['elo']), reverse=True)
-
-    group_1 = newlist[:len(newlist) // 2]
-    group_2 = newlist[len(newlist) // 2:]
+    if new:
+        group_1 = newlist[:len(newlist) // 2]
+        group_2 = newlist[len(newlist) // 2:]
+    else:
+        group_1 = newlist[::2]
+        group_2 = newlist[1::2]
     matches_id = []
     matched = []
     for player_1 in group_1:

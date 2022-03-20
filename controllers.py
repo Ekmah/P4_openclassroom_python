@@ -305,14 +305,15 @@ class RoundMatchsInit:
     def round_init(self):
         try:
             round_nb = len(self.tournament.rounds_id)
+            first_sorting = False
         except TypeError:
             self.tournament.rounds_id = []
             round_nb = 0
+            first_sorting = True
         if round_nb < self.tournament.nb_rounds:
             round_nb_actual = round_nb + 1
             print("new round!: ", round_nb_actual)
-            matches_id, matched = algo(self.tournament)
-
+            matches_id, matched = algo(self.tournament, first_sorting)
             round_obj = Round(tournament_id=self.tournament_id, round_name=f"Round {round_nb_actual}",
                               round_nb=round_nb_actual, datetime_start=datetime.datetime.now().isoformat(),
                               matches_id=matches_id)
