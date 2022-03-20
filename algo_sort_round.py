@@ -13,7 +13,7 @@ def algo(tournament):
                            "matched_players": player_score.player_already_matched_id,
                            "last_name": player.last_name, "first_name": player.first_name}
         all_players.append(compiled_player)
-    newlist = sorted(all_players, key=lambda d: (d['score'], d['elo']))
+    newlist = sorted(all_players, key=lambda d: (d['score'], d['elo']), reverse=True)
 
     group_1 = newlist[:len(newlist) // 2]
     group_2 = newlist[len(newlist) // 2:]
@@ -23,24 +23,22 @@ def algo(tournament):
         for player_2 in group_2:
             if not player_1["matched_players"]:
                 match_id = Match(False).save()
-                print(match_id)
+                # print(match_id)
                 StatutPlayer(match_id, player_1["player_id"]).save()
                 StatutPlayer(match_id, player_2["player_id"]).save()
-                group_1.remove(player_1)
                 group_2.remove(player_2)
                 matches_id.append(match_id)
                 matched.append([player_1, player_2])
+                break
             elif player_2["player_id"] not in player_1["matched_players"]:
                 match_id = Match(False).save()
-                print(match_id)
+                # print(match_id)
                 StatutPlayer(match_id, player_1["player_id"]).save()
                 StatutPlayer(match_id, player_2["player_id"]).save()
-                group_1.remove(player_1)
                 group_2.remove(player_2)
                 matches_id.append(match_id)
                 matched.append([player_1, player_2])
-            else:
-                pass
+                break
                 # go to next group_2 player
 
     return matches_id, matched

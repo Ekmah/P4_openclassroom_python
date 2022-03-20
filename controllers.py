@@ -22,8 +22,7 @@ class Menu:
         elif int(choice) == 1:
             PlayerInit().player_creation()
         elif int(choice) == 2:
-            pass
-            # edit player elo
+            PlayerInit().player_elo_edit()
         elif int(choice) == 3:
             self.tournament_sub_menu()
 
@@ -36,7 +35,7 @@ class Menu:
             if int(choice) == 0:
                 return self.main_menu()
             if int(choice) == 1:
-                RoundMatchsInit(tournament_id).c_round()  # finir le round en cours si en cours
+                RoundMatchsInit(tournament_id).round_controller()  # finir le round en cours si en cours
             elif int(choice) == 2:
                 pass
                 #   rapports
@@ -172,6 +171,14 @@ class PlayerInit:
         self.user_view.success(player_id)
         return Menu().main_menu()
 
+    def player_elo_edit(self):
+        player_id = self.user_view.get_player()
+        player = Player(**db.table('Player').get(doc_id=int(player_id)))
+        new_elo = self.user_view.get_new_elo(player.elo)
+        player.elo = int(new_elo)
+        player.update(player_id)
+        return Menu().main_menu()
+
     def c_birth_date(self):
         while True:
             try:
@@ -249,7 +256,53 @@ class RoundMatchsInit:
 
 # FINISH MATCH HERE + PROPOSAL DISPLAY SCOREBOARD
 
-    def c_round(self):
+    def round_controller(self):
+        try:
+            self.round_end()
+            self.round_init()
+        except TypeError:
+            self.round_init()
+
+    def round_end(self):
+        round_actual_id = self.tournament.rounds_id[-1]
+        print(len(self.tournament.rounds_id))
+        round_actual = Round(**db.table('Round').get(doc_id=int(round_actual_id)))
+        players_score = []
+        for match_id in round_actual.matches_id:
+            players_statut = db.table('StatutPlayer').search(where('match_id') == match_id)
+            compiled_players = []
+            for player_statut in players_statut:
+                player_id = player_statut['player_id']
+                player = Player(**db.table('Player').get(doc_id=int(player_id)))
+                player_statut = StatutPlayer(**player_statut)
+                compiled_players.append({"player_id": player_id, "player_statut": player_statut, "elo": player.elo,
+                                         "last_name": player.last_name, "first_name": player.first_name})
+            # print(compiled_players)
+            player_1_match_score, player_2_match_score = self.round_view.get_player_score(compiled_players)
+
+            player_1 = compiled_players[0]
+            player_1_id = player_1['player_id']
+            player_1['player_statut'].update_by_field('player_id', player_1_id)
+            player_1_score = PlayerScore(**db.table('PlayerScore').get(where('player_id') == player_1_id))
+            player_1_score.score += player_1_match_score
+            player_1_score.update_by_field('player_id', player_1_id)
+            player_1['score'] = player_1_score.score
+            players_score.append(player_1)
+
+            player_2 = compiled_players[1]
+            player_2_id = player_2['player_id']
+            player_2['player_statut'].update_by_field('player_id', player_2_id)
+            player_2_score = PlayerScore(**db.table('PlayerScore').get(where('player_id') == player_2_id))
+            player_2_score.score += player_2_match_score
+            player_2['score'] = player_2_score.score
+            players_score.append(player_2)
+
+        scoreboard = sorted(players_score, key=lambda d: (d['score'], d['elo']), reverse=True)
+        self.round_view.show_scoreboard(scoreboard)
+    # calcul top 1 add already matched players
+    # creation scoreboard
+
+    def round_init(self):
         try:
             round_nb = len(self.tournament.rounds_id)
         except TypeError:
@@ -257,6 +310,7 @@ class RoundMatchsInit:
             round_nb = 0
         if round_nb < self.tournament.nb_rounds:
             round_nb_actual = round_nb + 1
+            print("new round!: ", round_nb_actual)
             matches_id, matched = algo(self.tournament)
 
             round_obj = Round(tournament_id=self.tournament_id, round_name=f"Round {round_nb_actual}",
@@ -264,7 +318,7 @@ class RoundMatchsInit:
                               matches_id=matches_id)
             round_id = round_obj.save()
             self.tournament.rounds_id.append(round_id)
-            db.table('Tournament').update(self.tournament.__dict__)
+            self.tournament.update(self.tournament_id)
             self.round_view.show_matches(matched)
             return Menu().main_menu()
         else:

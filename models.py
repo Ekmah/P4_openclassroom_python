@@ -1,4 +1,4 @@
-from tinydb import TinyDB
+from tinydb import TinyDB, where
 
 
 class Tournament:
@@ -18,6 +18,16 @@ class Tournament:
         table = db.table('Tournament')
         return table.insert(self.__dict__)
 
+    def update_by_field(self, field, value):
+        db = TinyDB('db.json')
+        table = db.table('Tournament')
+        return table.update(self.__dict__, where(field) == value)
+
+    def update(self, model_id):
+        db = TinyDB('db.json')
+        table = db.table('Tournament')
+        return table.update(self.__dict__, doc_ids=[int(model_id)])
+
 
 class PlayerScore:
     def __init__(self, tournament_id, player_id: int, score: float = 0, player_already_matched_id=None):
@@ -30,6 +40,16 @@ class PlayerScore:
         db = TinyDB('db.json')
         table = db.table('PlayerScore')
         return table.insert(self.__dict__)
+
+    def update_by_field(self, field, value):
+        db = TinyDB('db.json')
+        table = db.table('PlayerScore')
+        return table.update(self.__dict__, where(field) == value)
+
+    def update(self, model_id):
+        db = TinyDB('db.json')
+        table = db.table('PlayerScore')
+        return table.update(self.__dict__, doc_ids=[int(model_id)])
 
 
 class Player:
@@ -46,9 +66,19 @@ class Player:
         table = db.table('Player')
         return table.insert(self.__dict__)
 
+    def update_by_field(self, field, value):
+        db = TinyDB('db.json')
+        table = db.table('Player')
+        return table.update(self.__dict__, where(field) == value)
+
+    def update(self, model_id):
+        db = TinyDB('db.json')
+        table = db.table('Player')
+        return table.update(self.__dict__, doc_ids=[int(model_id)])
+
 
 class StatutPlayer:
-    def __init__(self, match_id: int, player_id: int, player_match_score: float = None,
+    def __init__(self, match_id: int, player_id: int, player_match_score: float = 0,
                  color: str = None):
         self.color = color
         self.player_match_score = player_match_score
@@ -61,6 +91,16 @@ class StatutPlayer:
         table = db.table('StatutPlayer')
         return table.insert(self.__dict__)
 
+    def update_by_field(self, field, value):
+        db = TinyDB('db.json')
+        table = db.table('StatutPlayer')
+        return table.update(self.__dict__, where(field) == value)
+
+    def update(self, model_id):
+        db = TinyDB('db.json')
+        table = db.table('StatutPlayer')
+        return table.update(self.__dict__, doc_ids=[int(model_id)])
+
 
 class Match:
     def __init__(self, game_status: bool):
@@ -70,6 +110,16 @@ class Match:
         db = TinyDB('db.json')
         table = db.table('Match')
         return table.insert(self.__dict__)
+
+    def update_by_field(self, field, value):
+        db = TinyDB('db.json')
+        table = db.table('Match')
+        return table.update(self.__dict__, where(field) == value)
+
+    def update(self, model_id):
+        db = TinyDB('db.json')
+        table = db.table('Match')
+        return table.update(self.__dict__, doc_ids=[int(model_id)])
 
 
 class Round:
@@ -86,3 +136,13 @@ class Round:
         db = TinyDB('db.json')
         table = db.table('Round')
         return table.insert(self.__dict__)
+
+    def update_by_field(self, field, value):
+        db = TinyDB('db.json')
+        table = db.table('Round')
+        return table.update(self.__dict__, where(field) == value)
+
+    def update(self, model_id):
+        db = TinyDB('db.json')
+        table = db.table('Round')
+        return table.update(self.__dict__, doc_ids=[int(model_id)])

@@ -84,12 +84,22 @@ class TournoiCreation:
 
 class UserCreation:
     def __init__(self):
-        print("This is the user creation interface.\nPlease complete the needed information:\n")
+        print("This is the user creation/edition interface.\nPlease complete the needed information:\n")
 
     @staticmethod
     def success(player_id):
         print("\033[92m The player has been successfully created! Here is his ID: " + str(player_id) +
               "\n Write it down, you may need it later...\033[0m")
+
+    @staticmethod
+    def get_player():
+        print("Input the wanted player ID:")
+        return input()
+
+    @staticmethod
+    def get_new_elo(elo):
+        print(f"Current Elo: {elo}")
+        return input("New Elo: ")
 
     @staticmethod
     def get_last_name():
@@ -123,6 +133,24 @@ class UserCreation:
 class RoundCreation:
 
     @staticmethod
+    def get_player_score(statutplayers):
+        print(f"{statutplayers[0]['last_name']} {statutplayers[0]['first_name']} vs {statutplayers[1]['last_name']} "
+              f"{statutplayers[1]['first_name']}:")
+        print("Match score possible value: WIN: 1, LOSS: 0, TIE: 0.5")
+        player1 = input(f"Match score for {statutplayers[0]['last_name']} {statutplayers[0]['first_name']}: ")
+        player2 = input(f"Match score for {statutplayers[1]['last_name']} {statutplayers[1]['first_name']}: ")
+        return float(player1), float(player2)
+
+    @staticmethod
+    def show_scoreboard(scoreboard):
+        print("Scoreboard for this round:")
+        print("SCORE | ELO | ID | LAST NAME | FIRST NAME")
+        for score in scoreboard:
+            print(f"{score['score']} | {score['elo']} | {score['player_id']} | {score['last_name']} | {score['first_name']}")
+
+        return input("\nPress enter to continue...")
+
+    @staticmethod
     def get_round_name():
         print("Round name:")
         return input()
@@ -131,7 +159,8 @@ class RoundCreation:
     def show_matches(matched):
         print("Here are the matches:")
         for match in matched:
-            print(f"{match[0]['last_name']} {match[0]['first_name']} vs {match[1]['last_name']} {match[1]['first_name']}")
+            print(f"{match[0]['last_name']} {match[0]['first_name']} vs {match[1]['last_name']} "
+                  f"{match[1]['first_name']}")
         return input("Press Enter to go to menu...")
 
 
