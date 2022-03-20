@@ -1,6 +1,6 @@
 import datetime
-from models import Tournament, Player, Round, Match, StatutPlayer, PlayerScore
-from views import UserCreation, TournoiCreation, RoundCreation, MenuView, input_error, id_error
+from models import Tournament, Player, Round, StatutPlayer, PlayerScore
+from views import UserCreation, TournoiCreation, RoundCreation, MenuView, input_error
 from algo_sort_round import algo
 from tinydb import TinyDB, where
 db = TinyDB('db.json')
@@ -8,6 +8,7 @@ db = TinyDB('db.json')
 # PASSER LYNTER PYLINT PEP8
 # pip freeze > requirements.txt
 # create folder controller/view and files for each big view/controller
+# FAIRE README
 
 
 class Menu:
@@ -39,6 +40,20 @@ class Menu:
             elif int(choice) == 2:
                 pass
                 #   rapports
+
+    def reports_sub_menu(self):
+        pass
+
+
+class Reports:
+    def __init__(self):
+        self.reports = TournoiCreation()
+
+    def player_report(self):
+        pass
+
+    def tournament_report(self):
+        pass
 
 
 class TournamentInit:
@@ -123,6 +138,7 @@ class TournamentInit:
                 continue
         
     def c_players_id(self):
+        players_nb = 0
         while True:
             try:
                 players_nb = int(self.tournament_view.get_nb_players())
@@ -254,8 +270,6 @@ class RoundMatchsInit:
         if self.tournament:
             self.tournament_id = tournament_id
 
-# FINISH MATCH HERE + PROPOSAL DISPLAY SCOREBOARD
-
     def round_controller(self):
         try:
             self.round_end()
@@ -299,8 +313,6 @@ class RoundMatchsInit:
 
         scoreboard = sorted(players_score, key=lambda d: (d['score'], d['elo']), reverse=True)
         self.round_view.show_scoreboard(scoreboard)
-    # calcul top 1 add already matched players
-    # creation scoreboard
 
     def round_init(self):
         try:
@@ -324,11 +336,6 @@ class RoundMatchsInit:
             return Menu().main_menu()
         else:
             pass  # The tournament has ended
-
-    # Round()  # init # Done
-    # Match()  # init # Done
-    # StatutPlayer()  # init # Done
-    # Controlleur fin de tour (input score de match)
 
 
 if __name__ == '__main__':
