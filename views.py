@@ -146,7 +146,8 @@ class RoundCreation:
         print("Scoreboard for this round:")
         print("SCORE | ELO | ID | LAST NAME | FIRST NAME")
         for score in scoreboard:
-            print(f"{score['score']} | {score['elo']} | {score['player_id']} | {score['last_name']} | {score['first_name']}")
+            print(f"{score['score']} | {score['elo']} | {score['player_id']} | {score['last_name']} | "
+                  f"{score['first_name']}")
 
         return input("\nPress enter to continue...")
 

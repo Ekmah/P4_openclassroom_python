@@ -7,6 +7,8 @@ db = TinyDB('db.json')
 
 # PASSER LYNTER PYLINT PEP8
 # pip freeze > requirements.txt
+# pycodestyle --max-line-length 119 .\views.py
+# pepper8 affichage pep8 format html
 # create folder controller/view and files for each big view/controller
 # FAIRE README
 
@@ -55,6 +57,9 @@ class Reports:
     def tournament_report(self):
         pass
 
+# round show VS + result
+# all matches show VS + result
+
 
 class TournamentInit:
 
@@ -78,7 +83,7 @@ class TournamentInit:
             # id_error(player_id, "PlayerS")
         self.tournament_view.success()
         return Menu().main_menu()
-    
+
     def c_name(self):
         while True:
             try:
@@ -92,7 +97,7 @@ class TournamentInit:
             except ValueError:
                 input_error()
                 continue
-    
+
     def c_location(self):
         while True:
             try:
@@ -102,7 +107,7 @@ class TournamentInit:
             except ValueError:
                 input_error()
                 continue
-    
+
     def c_date(self):
         while True:
             try:
@@ -116,7 +121,7 @@ class TournamentInit:
             except ValueError:
                 input_error()
                 continue
-    
+
     def c_time_control(self):
         while True:
             try:
@@ -126,7 +131,7 @@ class TournamentInit:
             except ValueError:
                 input_error()
                 continue
-        
+
     def c_description(self):
         while True:
             try:
@@ -136,7 +141,7 @@ class TournamentInit:
             except ValueError:
                 input_error()
                 continue
-        
+
     def c_players_id(self):
         players_nb = 0
         while True:
@@ -159,7 +164,7 @@ class TournamentInit:
                     continue
             i += 1
         return players_id
-        
+
     def c_nb_rounds(self):
         while True:
             try:
@@ -168,7 +173,7 @@ class TournamentInit:
             except ValueError:
                 input_error()
                 continue
-        
+
 
 class PlayerInit:
 
@@ -293,23 +298,27 @@ class RoundMatchsInit:
                                          "last_name": player.last_name, "first_name": player.first_name})
             # print(compiled_players)
             player_1_match_score, player_2_match_score = self.round_view.get_player_score(compiled_players)
+            # warning 2 vars up there
+            for compiled_player in compiled_players:
+                player_1 = compiled_player
+                player_1_id = player_1['player_id']
+                player_1['player_statut'].player_match_score = player_1_match_score  # isn't loop compliant
+                player_1['player_statut'].update_by_field('player_id', player_1_id)
+                player_1_score = PlayerScore(**db.table('PlayerScore').get(where('player_id') == player_1_id))
+                player_1_score.score += player_1_match_score
+                player_1_score.update_by_field('player_id', player_1_id)
+                player_1['score'] = player_1_score.score
+                players_score.append(player_1)
 
-            player_1 = compiled_players[0]
-            player_1_id = player_1['player_id']
-            player_1['player_statut'].update_by_field('player_id', player_1_id)
-            player_1_score = PlayerScore(**db.table('PlayerScore').get(where('player_id') == player_1_id))
-            player_1_score.score += player_1_match_score
-            player_1_score.update_by_field('player_id', player_1_id)
-            player_1['score'] = player_1_score.score
-            players_score.append(player_1)
-
-            player_2 = compiled_players[1]
-            player_2_id = player_2['player_id']
-            player_2['player_statut'].update_by_field('player_id', player_2_id)
-            player_2_score = PlayerScore(**db.table('PlayerScore').get(where('player_id') == player_2_id))
-            player_2_score.score += player_2_match_score
-            player_2['score'] = player_2_score.score
-            players_score.append(player_2)
+            # player_2 = compiled_players[1]
+            # player_2_id = player_2['player_id']
+            # player_2['player_statut'].player_match_score = player_2_match_score
+            # player_2['player_statut'].update_by_field('player_id', player_2_id)
+            # player_2_score = PlayerScore(**db.table('PlayerScore').get(where('player_id') == player_2_id))
+            # player_2_score.score += player_2_match_score
+            # player_2_score.update_by_field('player_id', player_2_id)
+            # player_2['score'] = player_2_score.score
+            # players_score.append(player_2)
 
         scoreboard = sorted(players_score, key=lambda d: (d['score'], d['elo']), reverse=True)
         self.round_view.show_scoreboard(scoreboard)
