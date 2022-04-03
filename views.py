@@ -9,7 +9,8 @@ class MenuView:
         print("0: Create tournament (all players must be created beforehand)")
         print("1: Create player")
         print("2: Edit player elo/classement")
-        print("3: See tournament's rounds & reports")
+        print("3: See tournament's rounds")
+        print("4: See reports")
         return input("To choose an option, type it's number here:")
 
     @staticmethod
@@ -23,8 +24,69 @@ class MenuView:
     def sub_menu_tournament():
         print("0: Go to main menu")
         print("1: Finish a round & start a new one")
-        print("2: See the tournament's reports")
         return input("To choose an option, type it's number here:")
+
+    @staticmethod
+    def sub_menu_reports():
+        print("0: Go to main menu")
+        print("1: See Global")
+        print("2: See per Tournament")
+        return input("To choose an option, type it's number here:")
+
+
+class ReportsView:
+    def __init__(self):
+        print("This is the reports interface.\n")
+
+    @staticmethod
+    def global_reports():
+        print("0: Go to main menu")
+        print("1: See players ordered by name")
+        print("2: See players ordered by ranking")
+        print("3: See Tournaments")
+        return input("To choose an option, type it's number here:")
+
+    @staticmethod
+    def local_reports():
+        print("0: Go to main menu")
+        print("1: See players ordered by name")
+        print("2: See players ordered by ranking")
+        print("3: See Round's Matches")
+        print("4: See Tournament's Matches")
+        return input("To choose an option, type it's number here:")
+
+    @staticmethod
+    def players(players):
+        print("| LAST NAME | FIRST NAME | RANKING |")
+        for player in players:
+            print(f"| {player['last_name']} | {player['first_name']} | {player['elo']} |")
+        return input("\nPress enter to continue...")
+
+    @staticmethod
+    def tournaments(tournaments):
+        print("| NAME | LOCATION | DATE | NUMBER OF ROUNDS |")
+        for tournament in tournaments:
+            print(f"| {tournament['name']} | {tournament['location']} | {tournament['date']} | "
+                  f"{tournament['nb_rounds']} |")
+        return input("\nPress enter to continue...")
+
+    @staticmethod
+    def matches(all_matches, separated):
+        if separated:
+            for round_nb, round_matches in enumerate(all_matches):
+                print(f"Round {round_nb}")
+                print("LAST NAME FIRST NAME | WON/LOST/TIED VS LAST NAME FIRST NAME | WON/LOST/TIED")
+                for match in round_matches:
+                    player_1, player_2 = match
+                    print(f"{player_1['last_name']} {player_1['first_name']} | {player_1['player_match_score']} VS "
+                          f"{player_2['last_name']} {player_2['first_name']} | {player_2['player_match_score']}")
+        else:
+            print("LAST NAME FIRST NAME | WON/LOST/TIED VS LAST NAME FIRST NAME | WON/LOST/TIED")
+            for match in all_matches:
+                player_1, player_2 = match
+                print(f"{player_1['last_name']} {player_1['first_name']} | {player_1['player_match_score']} VS "
+                      f"{player_2['last_name']} {player_2['first_name']} | {player_2['player_match_score']}")
+        input("\nPress enter to continue...")
 
 
 class TournoiCreation:
@@ -133,13 +195,15 @@ class UserCreation:
 class RoundCreation:
 
     @staticmethod
-    def get_player_score(statutplayers):
+    def show_player_match(statutplayers):
         print(f"{statutplayers[0]['last_name']} {statutplayers[0]['first_name']} vs {statutplayers[1]['last_name']} "
               f"{statutplayers[1]['first_name']}:")
         print("Match score possible value: WIN: 1, LOSS: 0, TIE: 0.5")
-        player1 = input(f"Match score for {statutplayers[0]['last_name']} {statutplayers[0]['first_name']}: ")
-        player2 = input(f"Match score for {statutplayers[1]['last_name']} {statutplayers[1]['first_name']}: ")
-        return float(player1), float(player2)
+
+    @staticmethod
+    def get_player_score(statutplayer):
+        player1 = input(f"Match score for {statutplayer['last_name']} {statutplayer['first_name']}: ")
+        return float(player1)
 
     @staticmethod
     def show_scoreboard(scoreboard):

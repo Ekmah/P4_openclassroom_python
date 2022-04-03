@@ -1,16 +1,17 @@
 import datetime
-from models import Tournament, Player, Round, StatutPlayer, PlayerScore
-from views import UserCreation, TournoiCreation, RoundCreation, MenuView, input_error
+from models import Tournament, Player, Round, StatutPlayer, PlayerScore, Match
+from views import UserCreation, TournoiCreation, RoundCreation, MenuView, ReportsView, input_error
 from algo_sort_round import algo
-from tinydb import TinyDB, where
+from tinydb import TinyDB, where, Query
 db = TinyDB('db.json')
 
-# PASSER LYNTER PYLINT PEP8
-# pip freeze > requirements.txt
+# flake8 --format=html --htmldir=flake-report
 # pycodestyle --max-line-length 119 .\views.py
 # pepper8 affichage pep8 format html
 # create folder controller/view and files for each big view/controller
-# FAIRE README
+
+# create main.py that call controllers.py
+# README describe overall program use
 
 
 class Menu:
@@ -28,6 +29,8 @@ class Menu:
             PlayerInit().player_elo_edit()
         elif int(choice) == 3:
             self.tournament_sub_menu()
+        elif int(choice) == 4:
+            self.reports_sub_menu()
 
     def tournament_sub_menu(self):
         all_tournaments = [[Tournament(**t), t.doc_id] for t in db.table('Tournament').all()]
@@ -38,27 +41,93 @@ class Menu:
             if int(choice) == 0:
                 return self.main_menu()
             if int(choice) == 1:
-                RoundMatchsInit(tournament_id).round_controller()  # finir le round en cours si en cours
-            elif int(choice) == 2:
-                pass
-                #   rapports
+                RoundMatchsInit(tournament_id).round_controller()
 
     def reports_sub_menu(self):
-        pass
+        choice = self.menu_view.sub_menu_reports()
+        if int(choice) == 0:
+            return self.main_menu()
+        if int(choice) == 1:
+            Reports().reports_global()
+        if int(choice) == 2:
+            all_tournaments = [[Tournament(**t), t.doc_id] for t in db.table('Tournament').all()]
+            tournament_id = self.menu_view.choose_tournament(all_tournaments)
+            if tournament_id:
+                Reports().reports_local(tournament_id)
 
 
 class Reports:
     def __init__(self):
-        self.reports = TournoiCreation()
+        self.report_view = ReportsView()
 
-    def player_report(self):
-        pass
+    def reports_global(self):
+        choice = self.report_view.global_reports()
+        if int(choice) == 0:
+            return Menu().main_menu()
+        if int(choice) == 1:
+            self.player_report('last_name')
+        if int(choice) == 2:
+            self.player_report('elo')
+        if int(choice) == 3:
+            self.all_tournaments_report()
 
-    def tournament_report(self):
-        pass
+    def reports_local(self, tournament_id):
+        choice = self.report_view.local_reports()
+        if int(choice) == 0:
+            return Menu().main_menu()
+        if int(choice) == 1:
+            self.player_report('last_name', tournament_id)
+        if int(choice) == 2:
+            self.player_report('elo', tournament_id)
+        if int(choice) == 3:
+            self.tournaments_matches_report(tournament_id)
+        if int(choice) == 4:
+            self.tournaments_matches_report(tournament_id, False)
 
-# round show VS + result
-# all matches show VS + result
+    def player_report(self, ordering, tournament=False):
+        if tournament:
+            tournament = Tournament(**db.table('Tournament').get(doc_id=tournament))
+            players = [db.table('Player').get(doc_id=player_id) for player_id in tournament.players_id]
+        else:
+            players = db.table('Player').all()
+        if ordering == 'elo':
+            players = sorted(players, key=lambda d: (d['elo']), reverse=True)
+        elif ordering == 'last_name':
+            players = sorted(players, key=lambda d: (d['last_name']))
+        self.report_view.players(players)
+        return Menu().main_menu()
+
+    def all_tournaments_report(self):
+        all_tournaments = db.table('Tournament').all()
+        self.report_view.tournaments(all_tournaments)
+        return Menu().main_menu()
+
+    def tournaments_matches_report(self, tournament_id, separated=True):
+        tournament = Tournament(**db.table('Tournament').get(doc_id=int(tournament_id)))
+        all_matches = []
+        for round_actual_id in tournament.rounds_id:
+            round_actual = Round(**db.table('Round').get(doc_id=int(round_actual_id)))
+            matches_round = []
+            for match_id in round_actual.matches_id:
+                players_statut = db.table('StatutPlayer').search(where('match_id') == match_id)
+                match = []
+                for player_statut in players_statut:
+                    if player_statut["player_match_score"] == 1:
+                        player_statut["player_match_score"] = "WON"
+                    elif player_statut["player_match_score"] == 0.5:
+                        player_statut["player_match_score"] = "TIED"
+                    elif player_statut["player_match_score"] == 0:
+                        player_statut["player_match_score"] = "LOST"
+                    player = dict(db.table('Player').get(doc_id=player_statut['player_id']))
+                    player.update(player_statut)
+                    match.append(player)
+                matches_round.append(match)
+            if separated:
+                all_matches.append(matches_round)
+            else:
+                all_matches.extend(matches_round)
+        self.report_view.matches(all_matches, separated)
+        return Menu().main_menu()
 
 
 class TournamentInit:
@@ -80,7 +149,6 @@ class TournamentInit:
         for player_id in players_id:
             player_score = PlayerScore(tournoi_id, player_id)
             player_score.save()
-            # id_error(player_id, "PlayerS")
         self.tournament_view.success()
         return Menu().main_menu()
 
@@ -103,7 +171,6 @@ class TournamentInit:
             try:
                 location = self.tournament_view.get_location()
                 return str(location)
-                # must have characters?
             except ValueError:
                 input_error()
                 continue
@@ -273,7 +340,7 @@ class RoundMatchsInit:
         self.round_view = RoundCreation()
         self.tournament = Tournament(**db.table('Tournament').get(doc_id=int(tournament_id)))
         if self.tournament:
-            self.tournament_id = tournament_id
+            self.tournament_id = int(tournament_id)
 
     def round_controller(self):
         try:
@@ -287,39 +354,38 @@ class RoundMatchsInit:
         print(len(self.tournament.rounds_id))
         round_actual = Round(**db.table('Round').get(doc_id=int(round_actual_id)))
         players_score = []
+        if Match(**db.table('Match').get(doc_id=int(round_actual.matches_id[0]))).game_status:
+            print("\033[92mAll Rounds have already been finished.\033[0m")
+
+            return Menu().main_menu()
         for match_id in round_actual.matches_id:
             players_statut = db.table('StatutPlayer').search(where('match_id') == match_id)
             compiled_players = []
             for player_statut in players_statut:
+                player_statut_id = player_statut.doc_id
                 player_id = player_statut['player_id']
                 player = Player(**db.table('Player').get(doc_id=int(player_id)))
                 player_statut = StatutPlayer(**player_statut)
                 compiled_players.append({"player_id": player_id, "player_statut": player_statut, "elo": player.elo,
-                                         "last_name": player.last_name, "first_name": player.first_name})
-            # print(compiled_players)
-            player_1_match_score, player_2_match_score = self.round_view.get_player_score(compiled_players)
-            # warning 2 vars up there
-            for compiled_player in compiled_players:
-                player_1 = compiled_player
-                player_1_id = player_1['player_id']
-                player_1['player_statut'].player_match_score = player_1_match_score  # isn't loop compliant
-                player_1['player_statut'].update_by_field('player_id', player_1_id)
-                player_1_score = PlayerScore(**db.table('PlayerScore').get(where('player_id') == player_1_id))
-                player_1_score.score += player_1_match_score
-                player_1_score.update_by_field('player_id', player_1_id)
-                player_1['score'] = player_1_score.score
-                players_score.append(player_1)
-
-            # player_2 = compiled_players[1]
-            # player_2_id = player_2['player_id']
-            # player_2['player_statut'].player_match_score = player_2_match_score
-            # player_2['player_statut'].update_by_field('player_id', player_2_id)
-            # player_2_score = PlayerScore(**db.table('PlayerScore').get(where('player_id') == player_2_id))
-            # player_2_score.score += player_2_match_score
-            # player_2_score.update_by_field('player_id', player_2_id)
-            # player_2['score'] = player_2_score.score
-            # players_score.append(player_2)
-
+                                         "last_name": player.last_name, "first_name": player.first_name,
+                                         "player_statut_id": player_statut_id})
+            self.round_view.show_player_match(compiled_players)
+            for player in compiled_players:
+                player_match_score = self.round_view.get_player_score(player)
+                player_id = player['player_id']
+                player['player_statut'].player_match_score = player_match_score
+                player['player_statut'].update(player['player_statut_id'])
+                q = Query()
+                player_score_db = db.table('PlayerScore').get((q.player_id == player_id) & (q.tournament_id == self.tournament_id))
+                player_score_id = player_score_db.doc_id
+                player_score = PlayerScore(**player_score_db)
+                player_score.score += player_match_score
+                player_score.update(player_score_id)
+                player['score'] = player_score.score
+                players_score.append(player)
+            match = Match(**db.table('Match').get(doc_id=int(match_id)))
+            match.game_status = True
+            match.update(match_id)
         scoreboard = sorted(players_score, key=lambda d: (d['score'], d['elo']), reverse=True)
         self.round_view.show_scoreboard(scoreboard)
 
@@ -334,7 +400,7 @@ class RoundMatchsInit:
         if round_nb < self.tournament.nb_rounds:
             round_nb_actual = round_nb + 1
             print("new round!: ", round_nb_actual)
-            matches_id, matched = algo(self.tournament, first_sorting)
+            matches_id, matched = algo(self.tournament_id, first_sorting)
             round_obj = Round(tournament_id=self.tournament_id, round_name=f"Round {round_nb_actual}",
                               round_nb=round_nb_actual, datetime_start=datetime.datetime.now().isoformat(),
                               matches_id=matches_id)
@@ -344,7 +410,7 @@ class RoundMatchsInit:
             self.round_view.show_matches(matched)
             return Menu().main_menu()
         else:
-            pass  # The tournament has ended
+            return Menu().main_menu()
 
 
 if __name__ == '__main__':
