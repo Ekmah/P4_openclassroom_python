@@ -376,7 +376,8 @@ class RoundMatchsInit:
                 player['player_statut'].player_match_score = player_match_score
                 player['player_statut'].update(player['player_statut_id'])
                 q = Query()
-                player_score_db = db.table('PlayerScore').get((q.player_id == player_id) & (q.tournament_id == self.tournament_id))
+                player_score_db = db.table('PlayerScore').get((q.player_id == player_id) &
+                                                              (q.tournament_id == self.tournament_id))
                 player_score_id = player_score_db.doc_id
                 player_score = PlayerScore(**player_score_db)
                 player_score.score += player_match_score
@@ -411,7 +412,3 @@ class RoundMatchsInit:
             return Menu().main_menu()
         else:
             return Menu().main_menu()
-
-
-if __name__ == '__main__':
-    Menu().main_menu()

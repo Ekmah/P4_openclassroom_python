@@ -1,5 +1,5 @@
 from models import Player, Match, StatutPlayer, PlayerScore, Tournament
-from tinydb import TinyDB, where, Query
+from tinydb import TinyDB, Query
 db = TinyDB('db.json')
 
 
@@ -10,7 +10,7 @@ def algo(tournament_id, new):
         player = Player(**db.table('Player').get(doc_id=player_id))
         q = Query()
         player_score_db = db.table('PlayerScore').get((q.player_id == int(player_id)) &
-                                                        (q.tournament_id == int(tournament_id)))
+                                                      (q.tournament_id == int(tournament_id)))
         player_score_id = player_score_db.doc_id
         player_score = PlayerScore(**player_score_db)
         # nom,prénom, élo, score, already matched players
