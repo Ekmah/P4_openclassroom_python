@@ -18,6 +18,7 @@ class MenuView:
         print("Please choose which tournament you want to select:\n")
         for tournament in all_tournaments:
             print(f"ID: {tournament[1]}| Name: {tournament[0].name}, Date: {tournament[0].date}")
+        print("0: Go to main menu")
         return input("\nTo choose a tournament, type it's ID here:")
 
     @staticmethod
@@ -57,9 +58,9 @@ class ReportsView:
 
     @staticmethod
     def players(players):
-        print("| LAST NAME | FIRST NAME | RANKING |")
+        print("| ID | LAST NAME | FIRST NAME | RANKING |")
         for player in players:
-            print(f"| {player['last_name']} | {player['first_name']} | {player['elo']} |")
+            print(f"| {player.doc_id} | {player['last_name']} | {player['first_name']} | {player['elo']} |")
         return input("\nPress enter to continue...")
 
     @staticmethod
@@ -74,7 +75,7 @@ class ReportsView:
     def matches(all_matches, separated):
         if separated:
             for round_nb, round_matches in enumerate(all_matches):
-                print(f"Round {round_nb}")
+                print(f"Round {int(round_nb)+1}")
                 print("LAST NAME FIRST NAME | WON/LOST/TIED VS LAST NAME FIRST NAME | WON/LOST/TIED")
                 for match in round_matches:
                     player_1, player_2 = match

@@ -5,12 +5,7 @@ from algo_sort_round import algo
 from tinydb import TinyDB, where, Query
 db = TinyDB('db.json')
 
-# flake8 --format=html --htmldir=flake-report
-# pycodestyle --max-line-length 119 .\views.py
-# pepper8 affichage pep8 format html
-# create folder controller/view and files for each big view/controller
 
-# create main.py that call controllers.py
 # README describe overall program use
 
 
@@ -31,10 +26,15 @@ class Menu:
             self.tournament_sub_menu()
         elif int(choice) == 4:
             self.reports_sub_menu()
+        else:
+            input_error()
+            Menu().main_menu()
 
     def tournament_sub_menu(self):
         all_tournaments = [[Tournament(**t), t.doc_id] for t in db.table('Tournament').all()]
         tournament_id = self.menu_view.choose_tournament(all_tournaments)
+        if int(tournament_id) == 0:
+            return Menu().main_menu()
         tournament = Tournament(**db.table('Tournament').get(doc_id=int(tournament_id)))
         if tournament:
             choice = self.menu_view.sub_menu_tournament()
@@ -42,6 +42,9 @@ class Menu:
                 return self.main_menu()
             if int(choice) == 1:
                 RoundMatchsInit(tournament_id).round_controller()
+            else:
+                input_error()
+                Menu().tournament_sub_menu()
 
     def reports_sub_menu(self):
         choice = self.menu_view.sub_menu_reports()
@@ -52,8 +55,13 @@ class Menu:
         if int(choice) == 2:
             all_tournaments = [[Tournament(**t), t.doc_id] for t in db.table('Tournament').all()]
             tournament_id = self.menu_view.choose_tournament(all_tournaments)
-            if tournament_id:
+            if tournament_id and int(tournament_id) != 0:
                 Reports().reports_local(tournament_id)
+            elif int(tournament_id) == 0:
+                return Menu().reports_sub_menu()
+        else:
+            input_error()
+            Menu().main_menu()
 
 
 class Reports:
@@ -70,6 +78,9 @@ class Reports:
             self.player_report('elo')
         if int(choice) == 3:
             self.all_tournaments_report()
+        else:
+            input_error()
+            Reports().reports_global()
 
     def reports_local(self, tournament_id):
         choice = self.report_view.local_reports()
@@ -83,6 +94,9 @@ class Reports:
             self.tournaments_matches_report(tournament_id)
         if int(choice) == 4:
             self.tournaments_matches_report(tournament_id, False)
+        else:
+            input_error()
+            Menu().reports_sub_menu()
 
     def player_report(self, ordering, tournament=False):
         if tournament:
