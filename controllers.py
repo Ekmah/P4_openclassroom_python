@@ -6,9 +6,6 @@ from tinydb import TinyDB, where, Query
 db = TinyDB('db.json')
 
 
-# README describe overall program use
-
-
 class Menu:
     def __init__(self):
         self.menu_view = MenuView()
