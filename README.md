@@ -3,7 +3,6 @@
 The 4th project of the python app dev course
 
 ## Installation
-
 Use the package manager [pip](https://pip.pypa.io/en/stable/) to install requierments.
 
 ```bash
@@ -35,4 +34,9 @@ The matchups for the new round will also be shwon the same way.<br>
 or globally (Players ordered by name/ranking, Tournaments), then select the report 
 you want to see.
 
+##Flake8 reports:
+Here's how to generate a flake8 report. It can be found in the flake-report folder.
+```bash
+flake8 --format=html --htmldir=flake-report --exclude venv --max-line-length 79
+```
 
