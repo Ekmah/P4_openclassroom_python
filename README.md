@@ -13,7 +13,7 @@ pip install requirements.txt
 ## Usage
 To launch the project, simply use:
 ```bash
-python3 controllers.py
+python3 main.py
 ```
 To create a Tournament you must first have created the Players.
 You can navigate within the menu by typing the number of the 
